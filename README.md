@@ -9,9 +9,9 @@ A reusable template for building freestanding WebAssembly (WASM) projects in Zig
 zig build -Dall=true
 
 # 2. Copy WASM to web directory
-cp zig-out/bin/zig_wasm_to_web_template.wasm web/   # Linux/Mac
+cp zig-out/bin/main.wasm web/   # Linux/Mac
 # or
-Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\   # Windows
+Copy-Item zig-out\bin\main.wasm web\   # Windows
 
 # 3. Serve and test
 cd web
@@ -61,7 +61,7 @@ zig-wasm-to-web-template/
 │   └── some_info.md           # Additional implementation notes
 ├── zig-out/               # Build output (gitignored)
 │   └── bin/
-│       └── zig_wasm_to_web_template.wasm
+│       └── main.wasm
 └── README.md              # This file
 ```
 
@@ -94,15 +94,15 @@ zig-wasm-to-web-template/
    zig build -Dall=true
    ```
    
-   The compiled WASM will be in `zig-out/bin/zig_wasm_to_web_template.wasm`.
+   The compiled WASM will be in `zig-out/bin/main.wasm`.
 
 3. **Copy WASM to Web Directory**:
    ```bash
    # Windows (PowerShell)
-   Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\
+   Copy-Item zig-out\bin\main.wasm web\
    
    # Linux/Mac
-   cp zig-out/bin/zig_wasm_to_web_template.wasm web/
+   cp zig-out/bin/main.wasm web/
    ```
 
 4. **Local Development Serving**:
@@ -124,7 +124,7 @@ zig-wasm-to-web-template/
 6. **Production Deploy**:
    - Build with desired features and optimization: `zig build -Dall=true -Doptimize=ReleaseSmall`
    - Copy `web/` folder contents to your static host
-   - For extra optimization: `wasm-opt -Oz zig_wasm_to_web_template.wasm -o optimized.wasm`
+   - For extra optimization: `wasm-opt -Oz main.wasm -o optimized.wasm`
 
 ## Usage
 

@@ -16,9 +16,11 @@ pub fn build(b: *std.Build) void {
         },
     });
     // Standard optimization options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
-    // set a preferred release mode, allowing the user to decide how to optimize.
-    const optimize = b.standardOptimizeOption(.{});
+    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. We default to
+    // ReleaseSmall for the smallest WASM binary size.
+    const optimize = b.standardOptimizeOption(.{
+        .preferred_optimize_mode = .ReleaseSmall,
+    });
 
     // === Feature Flags for Web Features ===
     const webgpu = b.option(bool, "webgpu", "Enable WebGPU support") orelse false;
@@ -81,7 +83,7 @@ pub fn build(b: *std.Build) void {
     // If neither case applies to you, feel free to delete the declaration you
     // don't need and to put everything under a single module.
     const exe = b.addExecutable(.{
-        .name = "zig_wasm_to_web_template",
+        .name = "main",
         .root_module = b.createModule(.{
             // b.createModule defines a new module just like b.addModule but,
             // unlike b.addModule, it does not expose the module to consumers of
@@ -106,12 +108,16 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    
+
     // For WASM, we don't need an entry point - we just export functions
     exe.entry = .disabled;
-    
+
     // Required for WASM: export the table and enable stack protection
     exe.rdynamic = true;
+
+    // Optimize for smaller binary size
+    exe.root_module.strip = true;
+    exe.root_module.single_threaded = true;
 
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default

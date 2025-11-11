@@ -12,10 +12,10 @@ This guide will help you validate that the build system and feature flagging are
 2. **Copy WASM to web directory:**
    ```bash
    # Windows (PowerShell)
-   Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\
+   Copy-Item zig-out\bin\main.wasm web\
    
    # Linux/Mac
-   cp zig-out/bin/zig_wasm_to_web_template.wasm web/
+   cp zig-out/bin/main.wasm web/
    ```
 
 3. **Serve the web directory:**
@@ -69,7 +69,7 @@ You should see a green status box showing:
 ### Minimal Build (No Features)
 ```bash
 zig build
-Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\
+Copy-Item zig-out\bin\main.wasm web\
 ```
 
 Expected console output:
@@ -89,7 +89,7 @@ Expected page status:
 ### Specific Features Only
 ```bash
 zig build -Dwebgpu=true -Dwebaudio=true
-Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\
+Copy-Item zig-out\bin\main.wasm web\
 ```
 
 Expected console output will show only WebGPU and WebAudio being loaded.
@@ -101,10 +101,10 @@ Compare WASM file sizes:
 ```powershell
 # PowerShell (Windows)
 zig build -Dall=true 2>&1 >$null
-$allSize = (Get-Item zig-out\bin\zig_wasm_to_web_template.wasm).Length
+$allSize = (Get-Item zig-out\bin\main.wasm).Length
 
 zig build 2>&1 >$null
-$minSize = (Get-Item zig-out\bin\zig_wasm_to_web_template.wasm).Length
+$minSize = (Get-Item zig-out\bin\main.wasm).Length
 
 Write-Host "All features: $allSize bytes"
 Write-Host "No features:  $minSize bytes"
@@ -114,10 +114,10 @@ Write-Host "Difference:   $($allSize - $minSize) bytes"
 ```bash
 # Bash (Linux/Mac)
 zig build -Dall=true
-all_size=$(wc -c < zig-out/bin/zig_wasm_to_web_template.wasm)
+all_size=$(wc -c < zig-out/bin/main.wasm)
 
 zig build
-min_size=$(wc -c < zig-out/bin/zig_wasm_to_web_template.wasm)
+min_size=$(wc -c < zig-out/bin/main.wasm)
 
 echo "All features: $all_size bytes"
 echo "No features:  $min_size bytes"
@@ -137,7 +137,7 @@ To verify that JavaScript glue files are only loaded when needed:
 
 ### With All Features
 You should see requests for:
-- `zig_wasm_to_web_template.wasm`
+- `main.wasm`
 - `main.js`
 - `webgpu.js`
 - `webaudio.js`
@@ -146,7 +146,7 @@ You should see requests for:
 
 ### With Minimal Build
 You should only see:
-- `zig_wasm_to_web_template.wasm`
+- `main.wasm`
 - `main.js`
 
 **No glue files should be loaded!** This demonstrates lazy loading.

@@ -21,7 +21,7 @@ async function init() {
         };
 
         // Load and instantiate WASM
-        const response = await fetch('zig_wasm_to_web_template.wasm');
+        const response = await fetch('main.wasm');
         const wasmBytes = await response.arrayBuffer();
         const wasmModule = await WebAssembly.compile(wasmBytes);
         const wasmInstance = await WebAssembly.instantiate(wasmModule, importObject);
