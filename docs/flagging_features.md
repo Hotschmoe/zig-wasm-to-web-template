@@ -29,7 +29,7 @@ Enable **optional web features** (WebGPU, WebAudio, WebNN, inputs, etc.) in a **
 ## File Structure (Recommended)
 
 ```
-src/zig/
+src/
 ├── main.zig
 ├── webconfig.zig
 └── webfeatures/
@@ -52,7 +52,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "app",
-        .root_source_file = b.path("src/zig/main.zig"),
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
