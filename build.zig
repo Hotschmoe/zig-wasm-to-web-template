@@ -151,6 +151,43 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
+    // === Dev Step: Copy WASM to web/ directory ===
+    const dev_step = b.step("dev", "Build and copy WASM to web/ directory for development");
+
+    const install_wasm_dev = b.addInstallArtifact(exe, .{
+        .dest_dir = .{
+            .override = .{
+                .custom = "../web",
+            },
+        },
+    });
+
+    dev_step.dependOn(&install_wasm_dev.step);
+
+    // === Deploy Step: Create dist/ with WASM and all web assets ===
+    const deploy_step = b.step("deploy", "Build and create dist/ directory with WASM and web assets");
+
+    // Install WASM to dist/
+    const install_wasm_dist = b.addInstallArtifact(exe, .{
+        .dest_dir = .{
+            .override = .{
+                .custom = "../dist",
+            },
+        },
+    });
+
+    deploy_step.dependOn(&install_wasm_dist.step);
+
+    // Copy web assets to dist/
+    const install_web_assets = b.addInstallDirectory(.{
+        .source_dir = b.path("web"),
+        .install_dir = .{ .custom = "../dist" },
+        .install_subdir = "",
+        .exclude_extensions = &.{".wasm"}, // Don't copy old WASM files
+    });
+
+    deploy_step.dependOn(&install_web_assets.step);
+
     // Creates an executable that will run `test` blocks from the provided module.
     // Here `mod` needs to define a target, which is why earlier we made sure to
     // set the releative field.
