@@ -27,6 +27,9 @@ async function init() {
         const wasmInstance = await WebAssembly.instantiate(wasmModule, importObject);
 
         console.log('[Main] WASM loaded successfully');
+        
+        // Debug: Log all available exports
+        console.log('[Main] Available exports:', Object.keys(wasmInstance.exports));
 
         // Read feature list from WASM
         const featuresPtr = wasmInstance.exports.getRequiredFeatures();

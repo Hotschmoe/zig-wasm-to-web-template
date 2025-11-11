@@ -36,7 +36,3 @@ export fn init() void {
     if (comptime config.enable_webinput) webinput.init();
     if (comptime config.enable_webnn) webnn.init();
 }
-
-pub fn main() void {
-    // Not used in WASM context
-}
