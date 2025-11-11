@@ -1,8 +1,26 @@
 # zig-wasm-to-web-template
 
-(merge with zig-web-ffi project)
-
 A reusable template for building freestanding WebAssembly (WASM) projects in Zig, integrated with web technologies. This setup focuses on minimalism, performance, and modularity: compile Zig code to tiny WASM binaries, use JavaScript for browser interop (e.g., WebGPU, WebNN, inputs), and lazy-load feature-specific "glue" files to keep initial downloads small. Ideal for web apps, games, or compute-heavy demos where size and load times matter.
+
+## Quick Start
+
+```bash
+# 1. Build with all features enabled
+zig build -Dall=true
+
+# 2. Copy WASM to web directory
+cp zig-out/bin/zig_wasm_to_web_template.wasm web/   # Linux/Mac
+# or
+Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\   # Windows
+
+# 3. Serve and test
+cd web
+python -m http.server 8000
+
+# 4. Open http://localhost:8000 and check the console (F12)
+```
+
+You should see console messages showing which features were loaded!
 
 ## Why This Template?
 - **Minimal Overhead**: Zig's freestanding WASM targets produce tiny binaries (often <10KB) with dead code elimination (DCE). We avoid bloat by conditionally compiling features and lazy-loading JS glue.
@@ -19,60 +37,149 @@ A reusable template for building freestanding WebAssembly (WASM) projects in Zig
 ## File Structure
 ```
 zig-wasm-to-web-template/
-├── build.zig          # Zig build script: compiles WASM, adds feature flags, copies/symlinks assets to dist/
+├── build.zig              # Zig build script with feature flags
+├── build.zig.zon          # Zig package manifest
 ├── src/
-│   ├── main.zig       # Core Zig entry point with comptime conditionals for features
-│   ├── config.zig     # Optional: Build options module for feature toggles (e.g., enable_webgpu)
-│   └── [feature].zig  # Feature-specific files (e.g., webgpu.zig for WebGPU interop)
+│   ├── main.zig           # Core entry point with comptime feature conditionals
+│   ├── root.zig           # Module root for library use
+│   ├── webconfig.zig      # Central config - auto-generated from build options
+│   └── webfeatures/
+│       ├── webgpu.zig     # WebGPU feature implementation
+│       ├── webaudio.zig   # WebAudio feature implementation
+│       ├── webinput.zig   # Input handling feature implementation
+│       └── webnn.zig      # WebNN feature implementation
 ├── web/
-│   ├── index.html     # Entry HTML: loads main.js via <script type="module">
-│   ├── main.js        # Bootstrap JS: Loads WASM, checks features via Zig export, dynamic imports glue
-│   ├── src/           # Project-specific JS modules (UI logic, state management, etc.)
+│   ├── index.html         # Entry HTML: loads main.js via <script type="module">
+│   ├── main.js            # Bootstrap JS: Loads WASM, reads features, dynamic imports
 │   └── glue/
-│       ├── webgpu.js  # Glue for WebGPU: Bridges Zig exports to navigator.gpu
-│       ├── webnn.js   # Glue for WebNN: Bridges to navigator.ml
-│       └── inputs.js  # Glue for inputs: Event listeners, passing data to Zig
-├── dist/              # Generated: Built WASM, copied/symlinked web assets (don't commit this)
-└── README.md          # This file
+│       ├── webgpu.js      # WebGPU JavaScript glue (lazy loaded)
+│       ├── webaudio.js    # WebAudio JavaScript glue (lazy loaded)
+│       ├── webinput.js    # Input handling JavaScript glue (lazy loaded)
+│       └── webnn.js       # WebNN JavaScript glue (lazy loaded)
+├── docs/
+│   ├── flagging_features.md  # Detailed guide on feature flagging system
+│   └── some_info.md           # Additional implementation notes
+├── zig-out/               # Build output (gitignored)
+│   └── bin/
+│       └── zig_wasm_to_web_template.wasm
+└── README.md              # This file
 ```
 
-- **src/**: All Zig source. Keep freestanding (no `@import("std")` unless needed).
-- **web/**: Static assets and JS. `src/` holds project-specific JS modules, `glue/` holds modular interop files.
-- **dist/**: Output dir for builds. Use symlinks in dev for live edits (avoids stale copies).
+**Key Directories:**
+- **src/**: All Zig source code. Features are in `webfeatures/` subdirectory.
+- **web/**: Static assets and JS. `glue/` holds feature-specific interop modules.
+- **zig-out/**: Build output directory (not committed to git).
 
 ## Setup
 1. **Prerequisites**:
-   - Zig compiler (latest stable).
+   - Zig v0.15.1 (or compatible version).
    - Python 3 (for local serving; optional but recommended).
-   - Browser with WASM support (e.g., Chrome).
+   - Browser with WASM support (Chrome, Firefox, Safari, Edge).
 
 2. **Build the Project**:
-   - Basic build: `zig build` (produces `dist/my_project.wasm` with no extras).
-   - With features: `zig build -Dwebgpu=true -Dinputs=true` (compiles in support via comptime).
-   - The build script copies/symlinks `web/` to `dist/` for a complete deployable folder.
+   
+   **Minimal build (no features):**
+   ```bash
+   zig build
+   ```
+   
+   **Enable specific features:**
+   ```bash
+   zig build -Dwebgpu=true -Dwebaudio=true
+   zig build -Dwebinput=true -Dwebnn=true
+   ```
+   
+   **Enable ALL features:**
+   ```bash
+   zig build -Dall=true
+   ```
+   
+   The compiled WASM will be in `zig-out/bin/zig_wasm_to_web_template.wasm`.
 
-3. **Local Development Serving**:
-   - Navigate to `dist/` and run: `python -m http.server 8000`.
-   - Open `http://localhost:8000/index.html`.
-   - For edits: Change files in `web/` or `src/`, rebuild with `zig build`, refresh browser.
-   - Reason: No auto-watcher to keep lean—manual flow prevents accidental deploys of untested code. If needed, add a tool like `entr` for Unix: `ls dist/* | entr -r python -m http.server 8000`.
+3. **Copy WASM to Web Directory**:
+   ```bash
+   # Windows (PowerShell)
+   Copy-Item zig-out\bin\zig_wasm_to_web_template.wasm web\
+   
+   # Linux/Mac
+   cp zig-out/bin/zig_wasm_to_web_template.wasm web/
+   ```
 
-4. **Production Deploy**:
-   - Run `zig build` (or with flags), then host `dist/` on a static server (e.g., GitHub Pages, Vercel).
-   - Optimize WASM further: `wasm-opt -Oz dist/my_project.wasm -o dist/optimized.wasm` (install Binaryen if needed).
+4. **Local Development Serving**:
+   ```bash
+   cd web
+   python -m http.server 8000
+   ```
+   Open `http://localhost:8000/` in your browser.
+   
+   Check the browser console (F12) to see which features were loaded!
+
+5. **Development Workflow**:
+   - Edit Zig files in `src/`
+   - Run `zig build -Dwebgpu=true` (or your desired features)
+   - Copy WASM to `web/`
+   - Refresh browser
+   - Check console logs to verify feature loading
+
+6. **Production Deploy**:
+   - Build with desired features and optimization: `zig build -Dall=true -Doptimize=ReleaseSmall`
+   - Copy `web/` folder contents to your static host
+   - For extra optimization: `wasm-opt -Oz zig_wasm_to_web_template.wasm -o optimized.wasm`
 
 ## Usage
-- **Core Flow**:
-  1. Zig compiles to WASM with selected features.
-  2. `index.html` loads `main.js`.
-  3. `main.js` instantiates WASM, calls a Zig-exported function (e.g., `getRequiredFeatures()`) to get a list like `['webgpu', 'inputs']`.
-  4. Based on that, dynamically import glue files (e.g., `import('./glue/webgpu.js')`).
-  5. Glue sets up browser APIs and calls back into Zig exports.
 
-- **Customizing for Your Project**:
-  - Add features in `build.zig` (new options) and `src/` (comptime blocks).
-  - Extend `main.js` with project-specific UI/state logic—keep it baked in for speed, or modularize into `web/src/` for larger projects.
-  - Test feature detection: Use browser checks (e.g., `if (navigator.gpu)`) before importing glue.
+### Core Flow
+1. **Build with feature flags**: `zig build -Dwebgpu=true -Dwebaudio=true`
+2. **Zig compiles** only the enabled features into WASM using `comptime` conditionals
+3. **WASM exports** `getRequiredFeatures()` and `getRequiredFeaturesLength()` functions
+4. **main.js loads** the WASM and calls these exports to read the feature list
+5. **Dynamic imports**: `main.js` dynamically imports only the required glue modules
+6. **Glue setup**: Each glue module sets up its browser API bindings
+7. **Initialization**: `main.js` calls the WASM `init()` function to initialize all features
+
+### Example Console Output
+
+**With all features enabled** (`zig build -Dall=true`):
+```
+[Main] Loading WASM module...
+[Main] WASM loaded successfully
+[Main] Required features: webgpu, webaudio, webinput, webnn
+[Main] Loading webgpu glue...
+[JS] WebGPU glue loaded successfully
+[Main] Loading webaudio glue...
+[JS] WebAudio glue loaded successfully
+[Main] Loading webinput glue...
+[JS] WebInput glue loaded successfully
+[Main] Loading webnn glue...
+[JS] WebNN glue loaded successfully
+[Main] Initializing WASM features...
+[WASM] WebGPU initialized
+[WASM] WebAudio initialized
+[WASM] WebInput initialized
+[WASM] WebNN initialized
+[Main] Initialization complete!
+```
+
+**With minimal build** (`zig build`):
+```
+[Main] Loading WASM module...
+[Main] WASM loaded successfully
+[Main] No features enabled (minimal build)
+[Main] Initializing WASM features...
+[Main] Initialization complete!
+```
+
+### Customizing for Your Project
+- **Add new features**: 
+  1. Add option in `build.zig` (e.g., `const webxr = b.option(bool, "webxr", "Enable WebXR")`)
+  2. Update `webconfig.zig` to include the new flag
+  3. Create `src/webfeatures/webxr.zig` with your feature implementation
+  4. Create `web/glue/webxr.js` with JavaScript bindings
+  5. Update `main.zig` to conditionally import and initialize
+  
+- **Extend existing features**: Edit the respective `.zig` and `.js` files in `webfeatures/` and `glue/`
+
+- **Test feature detection**: Add browser capability checks in glue files (e.g., `if (navigator.gpu)` before WebGPU setup)
 
 ## Lazy Loading Examples
 Lazy loading ensures only necessary JS is fetched at runtime, reducing initial load (e.g., from 50KB to 10KB if WebGPU isn't needed).

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zig WASM Template</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .info-box {
+            background: #f7f9fc;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .info-box code {
+            background: #e1e8f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        #status {
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            color: #2e7d32;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .console-hint {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .console-hint code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Zig WASM Template</h1>
+        <p class="subtitle">Feature-Flagged WebAssembly with Dynamic Module Loading</p>
+
+        <div class="info-box">
+            <h3>How It Works</h3>
+            <p>This template demonstrates compile-time feature flagging in Zig with dynamic JavaScript module loading.</p>
+            <p><strong>Build with features:</strong></p>
+            <p><code>zig build -Dwebgpu=true -Dwebaudio=true</code></p>
+            <p><code>zig build -Dall=true</code> (enable all features)</p>
+            <p><code>zig build</code> (minimal build, no features)</p>
+        </div>
+
+        <div class="info-box">
+            <h3>What Happens</h3>
+            <p>1. WASM loads and reports enabled features</p>
+            <p>2. JavaScript dynamically imports only required glue modules</p>
+            <p>3. Each feature initializes independently</p>
+            <p>4. Unused features are eliminated at compile time</p>
+        </div>
+
+        <div id="status">Initializing...</div>
+
+        <div class="console-hint">
+            Open the browser console (F12) to see detailed initialization logs
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
+

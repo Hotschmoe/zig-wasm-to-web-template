@@ -8,14 +8,37 @@ const std = @import("std");
 // know when a step doesn't need to be re-run).
 pub fn build(b: *std.Build) void {
     // Standard target options allow the person running `zig build` to choose
-    // what target to build for. Here we do not override the defaults, which
-    // means any target is allowed, and the default is native. Other options
-    // for restricting supported target set are available.
-    const target = b.standardTargetOptions(.{});
+    // what target to build for. We default to WASM32 freestanding for web deployment.
+    const target = b.standardTargetOptions(.{
+        .default_target = .{
+            .cpu_arch = .wasm32,
+            .os_tag = .freestanding,
+        },
+    });
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
+
+    // === Feature Flags for Web Features ===
+    const webgpu = b.option(bool, "webgpu", "Enable WebGPU support") orelse false;
+    const webaudio = b.option(bool, "webaudio", "Enable WebAudio support") orelse false;
+    const webinput = b.option(bool, "webinput", "Enable input handling") orelse false;
+    const webnn = b.option(bool, "webnn", "Enable WebNN support") orelse false;
+
+    // === "All" Flag to enable everything ===
+    const all = b.option(bool, "all", "Enable ALL web features") orelse false;
+    const final_webgpu = all or webgpu;
+    const final_webaudio = all or webaudio;
+    const final_webinput = all or webinput;
+    const final_webnn = all or webnn;
+
+    // === Pass feature flags to Zig code ===
+    const build_options = b.addOptions();
+    build_options.addOption(bool, "enable_webgpu", final_webgpu);
+    build_options.addOption(bool, "enable_webaudio", final_webaudio);
+    build_options.addOption(bool, "enable_webinput", final_webinput);
+    build_options.addOption(bool, "enable_webnn", final_webnn);
     // It's also possible to define more custom flags to toggle optional features
     // of this build script using `b.option()`. All defined flags (including
     // target and optimize options) will be listed when running `zig build --help`
@@ -79,6 +102,7 @@ pub fn build(b: *std.Build) void {
                 // can be extremely useful in case of collisions (which can happen
                 // importing modules from different packages).
                 .{ .name = "zig_wasm_to_web_template", .module = mod },
+                .{ .name = "build_options", .module = build_options.createModule() },
             },
         }),
     });
