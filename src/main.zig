@@ -1,27 +1,22 @@
-const std = @import("std");
-const zig_wasm_to_web_template = @import("zig_wasm_to_web_template");
+const config = @import("webconfig.zig");
 
-pub fn main() !void {
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-    try zig_wasm_to_web_template.bufferedPrint();
+// Conditional imports — only compiled if enabled
+const webgpu   = if (config.enable_webgpu)   @import("webfeatures/webgpu.zig")   else struct {};
+const webaudio = if (config.enable_webaudio) @import("webfeatures/webaudio.zig") else struct {};
+const webinput = if (config.enable_webinput) @import("webfeatures/webinput.zig") else struct {};
+const webnn    = if (config.enable_webnn)    @import("webfeatures/webnn.zig")    else struct {};
+
+export fn getRequiredFeatures() [*]const u8 {
+    var list: []const u8 = "";
+    if (comptime config.enable_webgpu)   list ++= "webgpu,";
+    if (comptime config.enable_webaudio) list ++= "webaudio,";
+    if (comptime config.enable_webinput) list ++= "webinput,";
+    if (comptime config.enable_webnn)    list ++= "webnn,";
+    return list.ptr;
 }
 
-test "simple test" {
-    const gpa = std.testing.allocator;
-    var list: std.ArrayList(i32) = .empty;
-    defer list.deinit(gpa); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(gpa, 42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
-
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
+pub fn main() void {
+    if (comptime config.enable_webgpu)   webgpu.init();
+    if (comptime config.enable_webaudio) webaudio.playStartupSound();
+    if (comptime config.enable_webinput) webinput.setupListeners();
 }
